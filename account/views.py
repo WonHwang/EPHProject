@@ -4,12 +4,12 @@ from django.template.loader import render_to_string
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 
-#drf
+# drf
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 
-#auth, author
+# auth, author
 from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
@@ -35,10 +35,11 @@ def register(request):
     if serializer.is_valid(raise_exception=True):
         user = serializer.save()
         user.set_password(request.data.get('password'))
-        user.is_active = False
+        user.is_active = True
+        # user.is_active = False
         
         # 회원가입 인증메일 발송
-        send_register_email()
+        # send_register_email()
 
         user.save()
 

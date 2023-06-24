@@ -43,9 +43,11 @@ INSTALLED_APPS = [
     # django app
     'post',
     'account',
+    
     # third-party app
     'rest_framework',
     'rest_framework_jwt',
+    
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
