@@ -54,8 +54,10 @@ def activate(request, uid64, token):
     pass
 
 @api_view(['POST'])
+@authentication_classes([JSONWebTokenAuthentication])
+@permission_classes([IsAuthenticated])
 def check_password(request):
-    
+
     email = request.user.email
     password = request.user.password
 
