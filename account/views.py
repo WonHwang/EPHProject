@@ -56,7 +56,7 @@ def activate(request, uid64, token):
 @api_view(['POST'])
 def check_password(request):
     
-    email = request.user.email
+    email = request.user.username
     password = request.user.password
 
     user = get_object_or_404(get_user_model(), email=email)
