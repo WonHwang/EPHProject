@@ -3,6 +3,7 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
+from django.db import IntegrityError
 
 # drf
 from rest_framework.decorators import api_view
@@ -32,9 +33,9 @@ def register(request):
     
     serializer = UserSerializer(data=request.data)
 
-    if serializer.is_valid(raise_exception=True):
+    try:
         user = serializer.save()
-        user.set_password(request.data.get('password'))
+        user.set_password(password)
         user.is_active = True
         # user.is_active = False
         
@@ -44,7 +45,14 @@ def register(request):
         user.save()
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
+    
+    except IntegrityError as e:
+        return Response({'error': '이미 존재하는 사용자입니다.'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    except Exception as e:
+        return Response({'error': '서버 에러가 발생하였습니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    
 # 회원가입 인증메일 발송 함수
 def send_register_email():
     pass
