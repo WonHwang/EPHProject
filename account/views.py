@@ -15,6 +15,13 @@ from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 
+# email
+from django.core.mail import send_mail, EmailMessage
+from django.contrib.sites.shortcuts import get_current_site
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from .tokens import account_activation_token
+
 # models
 from .models import User
 from .serializers import UserSerializer, ChangePasswordSerializer
@@ -24,33 +31,54 @@ def register(request):
 
     password = request.data.get('password')
     password_confirmation = request.data.get('password_confirmation')
+    
+    if not request.data.get('email'):
+        return Response({'error': '사용자 입력 오류입니다.'}, status=status.HTTP_400_BAD_REQUEST)
 
     if not password:
         return Response({'error': '비밀번호 입력 오류입니다.'}, status=status.HTTP_400_BAD_REQUEST)
     
+    if not password_confirmation:
+        return Response({'error': '비밀번호 확인 입력 오류입니다.'}, status=status.HTTP_400_BAD_REQUEST)
+    
     if password != password_confirmation:
         return Response({'error': '비밀번호가 일치하지 않습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+    
     
     serializer = UserSerializer(data=request.data)
 
     try:
-        user = serializer.save()
-        user.set_password(password)
-        user.is_active = True
-        # user.is_active = False
+        if serializer.is_valid():
+            
+            user = serializer.save()
+            user.set_password(password)
+            
+            # 일단 회원가입시에는 바로 활성화
+            user.is_active = True
+            # user.is_active = False
+            
+            # 회원가입 인증메일 발송
+            data = {
+                'user': user,
+                'domain': get_current_site(request).domain,
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'token': account_activation_token.make_token(user),
+            }
+            print(data)
+            message = render_to_string('account/user_active_mail.html', data)
+
+            user.save()
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         
-        # 회원가입 인증메일 발송
-        # send_register_email()
-
-        user.save()
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     except IntegrityError as e:
         return Response({'error': '이미 존재하는 사용자입니다.'}, status=status.HTTP_400_BAD_REQUEST)
     
     except Exception as e:
-        return Response({'error': '서버 에러가 발생하였습니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'error': '서버 에러가 발생하였습니다.' + f"{str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     
 # 회원가입 인증메일 발송 함수

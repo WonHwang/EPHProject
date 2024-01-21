@@ -1,0 +1,14 @@
+<!--
+    Django Template으로 작성.
+    단순한 link 형태로 구현.
+-->
+<html>
+    <body>
+        <h1>회원가입 인증 메일입니다.</h1>
+        <p>
+            안녕하세요
+            아래 링크를 클릭하면 회원가입 인증이 완료됩니다.
+            회원가입 링크 : http://{{ domain }}{% url 'activate' uid64=uid token=token %}
+        </p>
+    </body>
+</html>
