@@ -41,7 +41,7 @@ ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     # django app
-    'post',
+    'post1',
     'account',
     
     # third-party app
