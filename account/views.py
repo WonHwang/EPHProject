@@ -66,6 +66,7 @@ def register(request):
             }
             print(data)
             message = render_to_string('account/user_active_mail.html', data)
+            print(message)
 
             user.save()
 
